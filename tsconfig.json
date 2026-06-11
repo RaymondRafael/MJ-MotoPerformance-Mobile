@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "app/forgot-password.tsx", "app/reset-password.tsx"  ]
 }

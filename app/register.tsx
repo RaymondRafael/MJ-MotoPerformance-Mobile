@@ -20,8 +20,7 @@ export default function RegisterMobile() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ⚠️ GANTI IP INI SESUAI DENGAN IP LAPTOP ANDA
-  const API_URL = 'http://10.76.124.100:8000/api';
+  const API_URL = 'https://swiftness-shifter-promotion.ngrok-free.dev/api';
 
   const handleRegister = async () => {
     if (!name || !email || !phone || !address || !password) {

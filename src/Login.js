@@ -20,8 +20,7 @@ export default function LoginScreen() {
     
     setIsLoading(true);
     try {
-      // ⚠️ GANTI IP INI SESUAI DENGAN IP LAPTOP ANDA
-      const response = await axios.post('http://10.76.124.100:8000/api/login', {
+      const response = await axios.post('https://swiftness-shifter-promotion.ngrok-free.dev/api/login', {
         email: email,
         password: password
       });
@@ -113,8 +112,11 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Link Lupa Password (Opsional) */}
-            <TouchableOpacity style={styles.forgotPasswordContainer}>
+            {/* Link Lupa Password (Aktif) */}
+            <TouchableOpacity 
+              style={styles.forgotPasswordContainer}
+              onPress={() => router.push('/forgot-password')} 
+            >
               <Text style={styles.forgotPasswordText}>Lupa password?</Text>
             </TouchableOpacity>
 

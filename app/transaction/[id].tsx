@@ -22,7 +22,7 @@ export default function ServiceDetailMobile() {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   // ⚠️ GANTI IP INI SESUAI DENGAN IP LAPTOP ANDA
-  const API_URL = 'http://10.76.124.100:8000/api';
+  const API_URL = 'https://swiftness-shifter-promotion.ngrok-free.dev/api';
 
   const fetchServiceDetail = async () => {
     try {

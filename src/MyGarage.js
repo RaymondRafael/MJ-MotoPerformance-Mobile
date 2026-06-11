@@ -36,7 +36,7 @@ export default function MyGarageMobile() {
       const name = await AsyncStorage.getItem('user_name');
       if (name) setUserName(name);
 
-      const response = await axios.get('http://10.76.124.100:8000/api/my-garage', {
+      const response = await axios.get('https://swiftness-shifter-promotion.ngrok-free.dev/api/my-garage', {
         headers: { Authorization: `Bearer ${token}` },
         params: { month: month, year: year } 
       });

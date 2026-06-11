@@ -18,8 +18,7 @@ export default function AdminTransactions() {
     setIsLoading(true);
     try {
       const token = await AsyncStorage.getItem('auth_token');
-      // ⚠️ Pastikan IP ini adalah IP Laptop Anda 
-      const response = await axios.get('http://10.76.124.100:8000/api/services', {
+      const response = await axios.get('https://swiftness-shifter-promotion.ngrok-free.dev/api/services', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTransactions(response.data.data);

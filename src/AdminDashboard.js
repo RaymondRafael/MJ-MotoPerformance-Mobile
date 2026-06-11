@@ -40,8 +40,7 @@ export default function AdminDashboard() {
       const name = await AsyncStorage.getItem('user_name');
       if (name) setUserName(name);
 
-      // Menggunakan IP 192.168.1.8 milik Anda
-      const response = await axios.get('http://10.76.124.100:8000/api/dashboard', {
+      const response = await axios.get('https://swiftness-shifter-promotion.ngrok-free.dev/api/dashboard', {
         headers: { Authorization: `Bearer ${token}` },
         params: { month: month, year: year } 
       });

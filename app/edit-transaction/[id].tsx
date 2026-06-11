@@ -23,7 +23,7 @@ export default function EditTransactionMobile() {
   const [isMechanicModalVisible, setIsMechanicModalVisible] = useState<boolean>(false);
 
   // ⚠️ GANTI IP INI SESUAI DENGAN IP LAPTOP ANDA
-  const API_URL = 'http://10.76.124.100:8000/api';
+  const API_URL = 'https://swiftness-shifter-promotion.ngrok-free.dev/api';
 
   useEffect(() => {
     const fetchInitialData = async () => {
