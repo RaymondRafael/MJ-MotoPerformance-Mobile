@@ -29,9 +29,25 @@ export default function ForgotPasswordScreen() {
 
     setIsLoading(true);
     try {
+      // PASTIKAN URL NGROK INI ADALAH YANG PALING BARU (Ngrok berganti URL setiap dihidupkan ulang)
       const response = await axios.post('https://swiftness-shifter-promotion.ngrok-free.dev/api/forgot-password', {
         email: email
+      }, {
+        // Tambahkan header ini agar Ngrok tahu ini adalah request API, bukan Browser biasa
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': '69420' // Header sakti untuk membypass peringatan Ngrok
+        }
       });
+
+      console.log("SUKSES DARI SERVER:", response.data);
+
+      // TAMBAHAN: Deteksi jika yang diterima adalah halaman HTML nyasar
+      if (typeof response.data === 'string' && response.data.includes('<html')) {
+          Alert.alert('Gagal Sistem', 'Server mengembalikan halaman web alih-alih data API. Pastikan rute routes/api.php sudah benar dan URL Ngrok aktif.');
+          return;
+      }
 
       if (response.data.success) {
         Alert.alert(
@@ -41,10 +57,28 @@ export default function ForgotPasswordScreen() {
             { text: 'Oke', onPress: () => router.replace('/login') }
           ]
         );
+      } else {
+         // Jika server merespon 200 OK tapi success: false (misal email tidak ada)
+        Alert.alert('Gagal', response.data.message || 'Email tidak ditemukan.');
       }
+
     } catch (error: any) {
-      console.error(error);
-      const errorMessage = error.response?.data?.message || 'Terjadi kesalahan saat mengirim link. Silakan coba lagi.';
+      // PROSES DEBUGGING YANG BAWEL
+      console.error("AXIOS ERROR DETAILS:", error);
+      console.log("RESPONSE DATA:", error.response?.data);
+      console.log("RESPONSE STATUS:", error.response?.status);
+
+      let errorMessage = 'Terjadi kesalahan sistem. Pastikan koneksi internet dan server menyala.';
+      
+      // Jika errornya dari validasi Laravel (contoh: format email salah)
+      if (error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      } 
+      // Jika tersangkut HTML Ngrok
+      else if (typeof error.response?.data === 'string' && error.response.data.includes('<html')) {
+        errorMessage = "Terhalang oleh Ngrok. Pastikan URL API sudah benar dan buka URL ngrok di browser sekali untuk 'Visit Site'.";
+      }
+
       Alert.alert('Gagal Mengirim', errorMessage);
     } finally {
       setIsLoading(false);

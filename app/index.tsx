@@ -65,7 +65,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0f172a' // bg-slate-900 (Konsisten dengan Login & Web)
+    backgroundColor: '#0f172a'
   }, 
   content: { 
     flex: 1, 

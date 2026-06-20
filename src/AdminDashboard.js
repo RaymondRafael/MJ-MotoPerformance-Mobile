@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [userName, setUserName] = useState('Admin');
   const router = useRouter();
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false); // State Sidebar
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false); 
 
   // Data Waktu untuk Filter
   const bulanIndoPendek = {
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
       {/* --- KOMPONEN SIDEBAR --- */}
       <AdminSidebar visible={isSidebarVisible} onClose={() => setIsSidebarVisible(false)} />
 
-      {/* --- NAVBAR MODEREN (Ada Tombol Hamburger) --- */}
+      {/* --- NAVBAR MODERN (Tombol Hamburger) --- */}
       <View style={styles.navbar}>
         <View style={styles.navLeft}>
           <TouchableOpacity onPress={() => setIsSidebarVisible(true)} style={styles.hamburgerButton}>

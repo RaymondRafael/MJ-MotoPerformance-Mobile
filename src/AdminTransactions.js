@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react'; // Ganti useEffect jadi useCallback
+import React, { useState, useCallback } from 'react'; 
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useRouter, useFocusEffect } from 'expo-router'; // Tambahkan useFocusEffect
+import { useRouter, useFocusEffect } from 'expo-router'; 
 import AdminSidebar from './components/AdminSidebar';
 
 export default function AdminTransactions() {
@@ -33,7 +33,6 @@ export default function AdminTransactions() {
     }
   };
 
-  // ✅ GANTI DENGAN KODE INI
   useFocusEffect(
     useCallback(() => {
       fetchTransactions();
@@ -42,7 +41,6 @@ export default function AdminTransactions() {
 
   const formatRupiah = (angka) => new Intl.NumberFormat('id-ID').format(angka || 0);
 
-  // LOGIKA PENCARIAN YANG SUDAH DISESUAIKAN DENGAN LARAVEL (Aman dari Crash)
   const filteredTransactions = transactions.filter(t => {
     const plat = t.vehicle?.license_plate || '';
     const nama = t.vehicle?.customer?.name || '';
@@ -101,19 +99,21 @@ export default function AdminTransactions() {
               <View style={styles.cardHeader}>
                 <View>
                   <View style={styles.platBadge}>
-                    {/* Menggunakan license_plate */}
                     <Text style={styles.platText}>{nota.vehicle?.license_plate || 'N/A'}</Text>
                   </View>
-                  {/* Menggabungkan brand dan model */}
                   <Text style={styles.vehicleName}>{nota.vehicle?.brand} {nota.vehicle?.model}</Text>
                   <Text style={styles.customerName}>Pelanggan: <Text style={{fontWeight: 'bold', color: '#4b5563'}}>{nota.vehicle?.customer?.name}</Text></Text>
                 </View>
                 
                 <View style={styles.rightHeader}>
-                  {/* Memotong format tanggal bawaan database agar lebih rapi */}
                   <Text style={styles.dateText}>{nota.created_at ? nota.created_at.substring(0, 10) : '-'}</Text>
                   
-                  {/* Menyesuaikan badge dengan status dari Laravel */}
+                  {/* --- PERBAIKAN 1: TAMPILAN BADGE STATUS LUNAS --- */}
+                  {nota.status === 'lunas' && (
+                    <View style={[styles.badge, { backgroundColor: '#f3e8ff' }]}>
+                      <Text style={[styles.badgeText, { color: '#7e22ce' }]}>LUNAS</Text>
+                    </View>
+                  )}
                   {nota.status === 'finished' && (
                     <View style={[styles.badge, { backgroundColor: '#dcfce7' }]}>
                       <Text style={[styles.badgeText, { color: '#166534' }]}>SELESAI</Text>
@@ -135,12 +135,10 @@ export default function AdminTransactions() {
               <View style={styles.cardBody}>
                 <View style={styles.mekanikInfo}>
                   <FontAwesome5 name="user-cog" size={11} color="#9ca3af" />
-                  {/* Menggunakan relasi mechanic.name */}
                   <Text style={styles.mekanikText}> Mekanik: {nota.mechanic?.name || 'Belum dipilih'}</Text>
                 </View>
                 <View style={styles.costInfo}>
                   <Text style={styles.costLabel}>Total Biaya</Text>
-                  {/* Menggunakan total_cost */}
                   <Text style={styles.costValue}>Rp {formatRupiah(nota.total_cost)}</Text>
                 </View>
               </View>
@@ -150,10 +148,16 @@ export default function AdminTransactions() {
                   <FontAwesome5 name="eye" size={12} color="#111827" />
                   <Text style={styles.actionText}>Detail</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton} onPress={() => router.push(`/edit-transaction/${nota.id}`)}>
-                    <FontAwesome5 name="edit" size={12} color="#2563eb" />
-                    <Text style={[styles.actionText, {color: '#2563eb'}]}>Edit</Text>
-                </TouchableOpacity>
+                
+                {/* --- PERBAIKAN 2: PENGAMANAN FRONTEND TOMBOL EDIT --- */}
+                {/* Tombol Edit hanya muncul jika status bukan Selesai atau Lunas */}
+                {!['finished', 'lunas'].includes(nota.status) && (
+                  <TouchableOpacity style={styles.actionButton} onPress={() => router.push(`/edit-transaction/${nota.id}`)}>
+                      <FontAwesome5 name="edit" size={12} color="#2563eb" />
+                      <Text style={[styles.actionText, {color: '#2563eb'}]}>Edit</Text>
+                  </TouchableOpacity>
+                )}
+                
                 <TouchableOpacity style={[styles.actionButton, {borderRightWidth: 0}]}>
                   <FontAwesome5 name="trash-alt" size={12} color="#dc2626" />
                   <Text style={[styles.actionText, {color: '#dc2626'}]}>Hapus</Text>
@@ -176,7 +180,6 @@ const styles = StyleSheet.create({
   logoRed: { color: '#ef4444' },
   addButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#dc2626', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
   addButtonText: { color: 'white', fontWeight: 'bold', fontSize: 12, marginLeft: 6 },
-  // Menggunakan paddingBottom: 100 agar kartu terbawah tidak tertutup tombol navigasi HP
   scrollContent: { padding: 16, paddingBottom: 100 },
   headerTitle: { marginBottom: 20 },
   pageTitle: { fontSize: 24, fontWeight: '900', color: '#111827' },
@@ -206,5 +209,4 @@ const styles = StyleSheet.create({
   cardActions: { flexDirection: 'row', backgroundColor: 'white' },
   actionButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRightWidth: 1, borderRightColor: '#f3f4f6' },
   actionText: { fontSize: 12, fontWeight: 'bold', color: '#111827', marginLeft: 6 }
-  
 });

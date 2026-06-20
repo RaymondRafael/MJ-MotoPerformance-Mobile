@@ -264,9 +264,16 @@ export default function MyGarageMobile() {
               
               <View style={styles.histHeader}>
                 <View>
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>SELESAI</Text>
-                  </View>
+                  {/* PENYESUAIAN: Badge Status Sesuai Warna Aslinya */}
+                  {hist.status === 'lunas' ? (
+                     <View style={[styles.statusBadge, {backgroundColor: '#f3e8ff'}]}>
+                       <Text style={[styles.statusText, {color: '#7e22ce'}]}>LUNAS</Text>
+                     </View>
+                  ) : (
+                     <View style={styles.statusBadge}>
+                       <Text style={styles.statusText}>SELESAI</Text>
+                     </View>
+                  )}
                   <Text style={styles.histPlat}>{hist.vehicle.plat}</Text>
                   <Text style={styles.histMerek}>{hist.vehicle.merek}</Text>
                 </View>
@@ -275,7 +282,15 @@ export default function MyGarageMobile() {
                     <Text style={styles.histTanggal}>{hist.tanggal}</Text>
                   </View>
                   <Text style={styles.histMekanikLabel}>Mekanik:</Text>
-                  <Text style={styles.histMekanik}>{hist.mekanik}</Text>
+                  
+                  {/* PENYESUAIAN: Coretan Untuk Mekanik Dihapus */}
+                  {hist.mekanik ? (
+                     <Text style={styles.histMekanik}>{hist.mekanik}</Text>
+                  ) : (
+                     <Text style={[styles.histMekanik, {textDecorationLine: 'line-through', color: '#94a3b8'}]}>
+                       {hist.historical_mechanic_name || '-'}
+                     </Text>
+                  )}
                 </View>
               </View>
 
@@ -290,9 +305,19 @@ export default function MyGarageMobile() {
                     <Text style={styles.rincianItemMaster}>Jasa Servis</Text>
                     <Text style={styles.rincianHargaMaster}>Rp {formatRupiah(hist.jasa_servis)}</Text>
                   </View>
+                  
                   {hist.rincian_suku_cadang && hist.rincian_suku_cadang.map((detail, idx) => (
                     <View key={idx} style={styles.rincianRowPart}>
-                      <Text style={styles.rincianItem} numberOfLines={1}>- {detail.nama} (x{detail.qty})</Text>
+                      
+                      {/* PENYESUAIAN: Coretan Untuk Barang Dihapus */}
+                      {detail.nama && detail.nama !== 'Suku Cadang Lama' ? (
+                         <Text style={styles.rincianItem} numberOfLines={1}>- {detail.nama} (x{detail.qty})</Text>
+                      ) : (
+                         <Text style={[styles.rincianItem, {textDecorationLine: 'line-through', color: '#94a3b8'}]} numberOfLines={1}>
+                           - {detail.historical_name || 'Barang Dihapus'} (x{detail.qty})
+                         </Text>
+                      )}
+                      
                       <Text style={styles.rincianHarga}>Rp {formatRupiah(detail.subtotal)}</Text>
                     </View>
                   ))}
@@ -326,7 +351,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', 
     alignItems: 'center', 
     paddingHorizontal: 16,
-    paddingVertical: 12, // Dibuat sedikit lebih ramping
+    paddingVertical: 12, 
     backgroundColor: 'rgba(255, 255, 255, 0.85)', 
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 1)',
@@ -340,7 +365,7 @@ const styles = StyleSheet.create({
   },
   logoIconBox: { 
     backgroundColor: '#0f172a', 
-    width: 24, // Dikecilkan sedikit
+    width: 24, 
     height: 24, 
     borderRadius: 6, 
     alignItems: 'center', 
@@ -352,7 +377,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1, 
     shadowRadius: 2 
   },
-  // PERBAIKAN: Font size dikecilkan jadi 13, letter spacing dipersempit, dan bisa shrink
   logoText: { 
     color: '#0f172a', 
     fontSize: 13, 
@@ -373,7 +397,7 @@ const styles = StyleSheet.create({
     fontWeight: '700', 
     marginRight: 10, 
     flexShrink: 1, 
-    maxWidth: 90 // Memastikan nama tidak mendesak tombol keluar terlalu jauh
+    maxWidth: 90 
   },
   logoutButton: { 
     backgroundColor: 'white', 

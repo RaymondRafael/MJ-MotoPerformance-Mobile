@@ -49,10 +49,36 @@ export default function LoginScreen() {
       }
 
     } catch (error) {
-      console.error(error);
-      Alert.alert('Gagal Login', 'Email atau Password salah.');
-    } finally {
       setIsLoading(false);
+      console.error(error);
+      
+      // PENANGANAN ERROR 
+      if (error.response) {
+        // Jika status 422 (Validasi Gagal dari Laravel)
+        if (error.response.status === 422) {
+          const validationErrors = error.response.data.errors;
+          
+          // Cari pesan error pertama yang dikirim Laravel (misal: "Domain email tidak didukung...")
+          let firstErrorMessage = 'Format input tidak sesuai.';
+          if (validationErrors) {
+            const firstKey = Object.keys(validationErrors)[0];
+            firstErrorMessage = validationErrors[firstKey][0]; 
+          }
+          
+          Alert.alert('Login Gagal', firstErrorMessage);
+        } 
+        // Jika status 401 (Email/Password Salah)
+        else if (error.response.status === 401) {
+          Alert.alert('Login Gagal', 'Email atau kata sandi yang Anda masukkan salah.');
+        } 
+        // Error server lainnya
+        else {
+          Alert.alert('Terjadi Kesalahan', error.response.data.message || 'Gagal terhubung ke server.');
+        }
+      } else {
+        // Jika server mati atau tidak ada internet
+        Alert.alert('Koneksi Terputus', 'Tidak dapat terhubung ke server. Pastikan internet Anda aktif.');
+      }
     }
   };
 

@@ -43,6 +43,10 @@ export default function RegisterMobile() {
         address: address, 
         password: password,
         password_confirmation: passwordConfirm 
+      }, {
+        headers: {
+          'Accept': 'application/json' // Memaksa Laravel merespons format JSON API yang tepat
+        }
       });
 
       const responseData = response.data.data;
@@ -59,15 +63,42 @@ export default function RegisterMobile() {
         }] 
       );
       
-    } catch (err) {
-      console.error(err);
-      let errorMsg = 'Gagal mendaftar. Pastikan email atau nomor HP belum terdaftar.';
+    } catch (error) {
+      console.error(error);
       
-      if (axios.isAxiosError(err) && err.response) {
-         errorMsg = err.response.data?.message || errorMsg;
+      // --- PENANGANAN ERROR PROFESIONAL (TYPESCRIPT SAFE) ---
+      if (axios.isAxiosError(error)) {
+        
+        // Jika server Laravel memberikan respons error (Status 4xx / 5xx)
+        if (error.response) {
+          // Status 422: Validasi Gagal (Format email salah, domain ditolak, dll)
+          if (error.response.status === 422) {
+            const validationErrors = error.response.data?.errors;
+            
+            let firstErrorMessage = 'Format input tidak sesuai.';
+            if (validationErrors) {
+              // Menggali ke dalam array rincian errors untuk mengambil satu pesan spesifik asli
+              const firstKey = Object.keys(validationErrors)[0];
+              firstErrorMessage = validationErrors[firstKey][0]; 
+            }
+            
+            Alert.alert('Pendaftaran Gagal', firstErrorMessage);
+          } 
+          // Status Error Server Lainnya (Misal 500)
+          else {
+            Alert.alert('Terjadi Kesalahan', error.response.data?.message || 'Gagal mendaftarkan akun.');
+          }
+        } 
+        // Jika server mati, terowongan ngrok mati, atau ponsel kehilangan koneksi internet
+        else {
+          Alert.alert('Koneksi Terputus', 'Tidak dapat terhubung ke server. Pastikan internet Anda aktif.');
+        }
+        
+      } 
+      // Jika terjadi error internal kodingan React Native/Expo sendiri
+      else {
+        Alert.alert('Terjadi Kesalahan', 'Terjadi kendala sistem yang tidak terduga pada aplikasi.');
       }
-      
-      Alert.alert('Pendaftaran Gagal', errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -118,7 +149,7 @@ export default function RegisterMobile() {
                 <FontAwesome5 name="envelope" size={16} color="#64748b" style={styles.inputIcon} />
                 <TextInput 
                   style={styles.input}
-                  placeholder="contoh@email.com"
+                  placeholder="Masukkan email anda..."
                   placeholderTextColor="#475569"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -229,19 +260,16 @@ export default function RegisterMobile() {
   );
 }
 
-// --- DESAIN UI (STYLES) REGISTER MODERN ---
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0f172a' // bg-slate-900 (Konsisten dengan Login & Welcome)
+    backgroundColor: '#0f172a' 
   }, 
   scrollContent: { 
     flexGrow: 1, 
     paddingHorizontal: 24, 
     paddingVertical: 40 
   },
-  
-  // Header Logo
   headerContainer: { 
     alignItems: 'center', 
     marginBottom: 32 
@@ -249,7 +277,7 @@ const styles = StyleSheet.create({
   logoBox: {
     width: 64,
     height: 64,
-    backgroundColor: '#dc2626', // bg-red-600
+    backgroundColor: '#dc2626', 
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -259,7 +287,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    transform: [{ rotate: '-3deg' }] // Efek miring
+    transform: [{ rotate: '-3deg' }] 
   },
   titleWrapper: {
     flexDirection: 'row',
@@ -284,14 +312,12 @@ const styles = StyleSheet.create({
     fontSize: 14, 
     fontWeight: '500' 
   },
-  
-  // Form Area (Glass Card)
   cardContainer: {
-    backgroundColor: 'rgba(30, 41, 59, 0.7)', // bg-slate-800/70
+    backgroundColor: 'rgba(30, 41, 59, 0.7)', 
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(51, 65, 85, 0.5)', // border-slate-700/50
+    borderColor: 'rgba(51, 65, 85, 0.5)', 
     marginBottom: 20
   },
   inputWrapper: {
@@ -308,10 +334,10 @@ const styles = StyleSheet.create({
   inputGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.5)', // bg-slate-900/50
+    backgroundColor: 'rgba(15, 23, 42, 0.5)', 
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#334155', // border-slate-700
+    borderColor: '#334155', 
     paddingHorizontal: 16,
     height: 56
   },
@@ -329,8 +355,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: -10 
   },
-  
-  // Khusus Alamat Multiline
   addressGroup: { 
     height: 100, 
     alignItems: 'flex-start' 
@@ -342,8 +366,6 @@ const styles = StyleSheet.create({
   addressIcon: {
     marginTop: 18
   },
-
-  // Tombol Solid
   btnPrimary: { 
     flexDirection: 'row',
     backgroundColor: '#dc2626', 
@@ -366,8 +388,6 @@ const styles = StyleSheet.create({
     fontSize: 16, 
     fontWeight: 'bold' 
   },
-
-  // Footer Login (Konsisten dengan LoginScreen)
   loginFooter: { 
     flexDirection: 'row',
     justifyContent: 'center',

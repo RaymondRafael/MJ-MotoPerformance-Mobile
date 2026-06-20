@@ -15,14 +15,13 @@ export default function EditTransactionMobile() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // State Form (Bisa diubah)
+  // State Form 
   const [selectedMechanic, setSelectedMechanic] = useState<any>(null);
   const [complaint, setComplaint] = useState<string>('');
 
   // State Modal
   const [isMechanicModalVisible, setIsMechanicModalVisible] = useState<boolean>(false);
 
-  // ⚠️ GANTI IP INI SESUAI DENGAN IP LAPTOP ANDA
   const API_URL = 'https://swiftness-shifter-promotion.ngrok-free.dev/api';
 
   useEffect(() => {
@@ -85,7 +84,7 @@ export default function EditTransactionMobile() {
       });
       
       Alert.alert('Sukses', 'Informasi servis berhasil diperbarui!');
-      router.back(); // Kembali ke halaman sebelumnya
+      router.back();
     } catch (error: any) {
       console.error("Gagal update data", error);
       Alert.alert('Gagal', 'Terjadi kesalahan saat menyimpan perubahan.');
