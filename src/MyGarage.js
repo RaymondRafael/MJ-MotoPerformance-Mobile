@@ -97,7 +97,7 @@ export default function MyGarageMobile() {
       <View style={styles.bgGlowRed} />
       <View style={styles.bgGlowOrange} />
 
-      {/* --- NAVBAR WHITE GLASS --- */}
+      {/* --- NAVBAR --- */}
       <View style={styles.navbar}>
         <TouchableOpacity style={styles.logoContainer} onPress={onRefresh} activeOpacity={0.7}>
           <View style={styles.logoIconBox}>
@@ -124,18 +124,17 @@ export default function MyGarageMobile() {
         }
       >
         
-        {/* Header Teks */}
         <View style={styles.pageHeaderBox}>
           <Text style={styles.pageTitle}>Dashboard Kendaraan</Text>
           <Text style={styles.pageSubtitle}>Pantau status pengerjaan dan riwayat Anda secara real-time.</Text>
         </View>
 
-        {/* --- BAGIAN: SEDANG DIKERJAKAN --- */}
+        {/* --- BAGIAN: PELACAKAN AKTIF --- */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionIconBox}>
             <FontAwesome5 name="satellite-dish" size={14} color="#dc2626" />
           </View>
-          <Text style={styles.sectionTitle}>Sedang Dikerjakan</Text>
+          <Text style={styles.sectionTitle}>Pelacakan Aktif</Text>
         </View>
 
         {activeServices.length === 0 ? (
@@ -144,66 +143,106 @@ export default function MyGarageMobile() {
               <FontAwesome5 name="motorcycle" size={32} color="#cbd5e1" />
             </View>
             <Text style={styles.emptyTitle}>Tidak ada kendaraan di bengkel</Text>
-            <Text style={styles.emptyText}>Kendaraan yang sedang antre atau diservis akan otomatis muncul di sini.</Text>
+            <Text style={styles.emptyText}>Kendaraan yang sedang antre, diservis, atau menunggu diambil akan muncul di sini.</Text>
           </View>
         ) : (
-          activeServices.map((service, index) => (
-            <View key={index} style={styles.glassCard}>
-              <View style={styles.gradientTopLine} />
-              
-              <View style={styles.cardHeader}>
-                <View style={{flex: 1, paddingRight: 10}}>
-                  <View style={styles.platBadge}>
-                    <Text style={styles.platText}>{service.vehicle.plat}</Text>
+          activeServices.map((service, index) => {
+            const isFinished = service.status === 'finished';
+            const isProcessing = service.status === 'processing';
+            
+            // Ambil nama mekanik (bisa aktif maupun historis jika dihapus admin)
+            const mekanikName = service.mekanik || service.historical_mechanic_name;
+            
+            return (
+              <View key={index} style={styles.glassCard}>
+                <View style={[styles.gradientTopLine, isFinished && { backgroundColor: '#10b981' }]} />
+                
+                <View style={styles.cardHeader}>
+                  <View style={{flex: 1, paddingRight: 10}}>
+                    <View style={styles.platBadge}>
+                      <Text style={styles.platText}>{service.vehicle.plat}</Text>
+                    </View>
+                    <Text style={styles.vehicleName}>{service.vehicle.merek}</Text>
+                    <Text style={styles.complaintText}>Keluhan: <Text style={{fontWeight: '700', color: '#334155'}}>{service.complaint}</Text></Text>
                   </View>
-                  <Text style={styles.vehicleName}>{service.vehicle.merek}</Text>
-                  <Text style={styles.complaintText}>Keluhan: <Text style={{fontWeight: '700', color: '#334155'}}>{service.complaint}</Text></Text>
+                  <View style={styles.costContainer}>
+                    <Text style={styles.costLabel}>Total Tagihan Servis</Text>
+                    <Text style={[styles.costValue, isFinished && { color: '#10b981' }]}>Rp {formatRupiah(service.total_cost)}</Text>
+                  </View>
                 </View>
-                <View style={styles.costContainer}>
-                  <Text style={styles.costLabel}>Estimasi Sementara</Text>
-                  <Text style={styles.costValue}>Rp {formatRupiah(service.total_cost)}</Text>
+
+                {/* INFO MEKANIK AKTIF (DIPASTIKAN MUNCUL) */}
+                <View style={styles.mechanicContainer}>
+                  <Text style={styles.mechanicLabel}>
+                    <FontAwesome5 name="wrench" size={10} color="#94a3b8" />  Mekanik Bertugas
+                  </Text>
+                  
+                  {mekanikName ? (
+                    <View style={styles.mechanicBadge}>
+                      <View style={styles.mechanicPulseDot} />
+                      <FontAwesome5 name="user-cog" size={12} color="#2563eb" style={{marginRight: 6}} />
+                      <Text style={styles.mechanicText}>{mekanikName}</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.mechanicBadgePending}>
+                      <FontAwesome5 name="hourglass-start" size={10} color="#94a3b8" style={{marginRight: 6}} />
+                      <Text style={styles.mechanicTextPending}>Menunggu Mekanik</Text>
+                    </View>
+                  )}
                 </View>
+
+                {/* TRACKER PROGRESS BAR (SISTEM FLEXBOX BARU - ANTI PUTUS) */}
+                <View style={styles.trackerWrapper}>
+                  <View style={styles.trackerRow}>
+                    
+                    {/* Step 1: Antrean */}
+                    <View style={[styles.trackCircle, styles.trackCircleActive]}>
+                      <FontAwesome5 name="clipboard-list" size={14} color="white" />
+                    </View>
+
+                    {/* Line 1 (Antrean -> Dikerjakan) */}
+                    <View style={[styles.trackLine, (isProcessing || isFinished) ? styles.trackLineActive : styles.trackLineInactive]} />
+
+                    {/* Step 2: Dikerjakan */}
+                    <View style={[styles.trackCircle, (isProcessing || isFinished) ? styles.trackCircleActive : styles.trackCircleInactive]}>
+                      <FontAwesome5 name="tools" size={14} color={(isProcessing || isFinished) ? "white" : "#94a3b8"} />
+                    </View>
+
+                    {/* Line 2 (Dikerjakan -> Selesai) */}
+                    <View style={[styles.trackLine, isFinished ? styles.trackLineFinished : styles.trackLineInactive]} />
+
+                    {/* Step 3: Selesai */}
+                    <View style={[styles.trackCircle, isFinished ? styles.trackCircleFinished : styles.trackCircleInactive]}>
+                      <FontAwesome5 name="check-double" size={14} color={isFinished ? "white" : "#94a3b8"} />
+                    </View>
+                  </View>
+
+                  <View style={styles.trackerLabels}>
+                    <Text style={[styles.trackLabel, styles.trackLabelActive]}>ANTREAN</Text>
+                    <Text style={[styles.trackLabel, (isProcessing || isFinished) ? styles.trackLabelActive : styles.trackLabelInactive]}>DIKERJAKAN</Text>
+                    <Text style={[styles.trackLabel, isFinished ? styles.trackLabelFinished : styles.trackLabelInactive]}>SELESAI</Text>
+                  </View>
+                </View>
+
+                {/* NOTIFIKASI SIAP DIAMBIL JIKA FINISHED */}
+                {isFinished && (
+                  <View style={styles.readyNotification}>
+                    <View style={styles.readyIconBox}>
+                      <FontAwesome5 name="bell" size={18} color="white" solid />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.readyTitle}>Motor Siap Diambil!</Text>
+                      <Text style={styles.readyText}>Kendaraan Anda telah selesai diperbaiki. Silakan ke kasir untuk pelunasan dan pengambilan kunci.</Text>
+                    </View>
+                  </View>
+                )}
+
               </View>
-
-              <View style={styles.trackerContainer}>
-                {/* Garis Track Belakang */}
-                <View style={styles.trackLineBg} />
-                {/* Garis Track Aktif */}
-                <View style={[styles.trackLineRed, { width: service.status === 'pending' ? '0%' : '50%' }]} />
-
-                {/* Wadah pembungkus row agar bulatan menyamping */}
-                <View style={styles.trackStepsRow}>
-                  {/* Step 1: Antrean */}
-                  <View style={styles.trackStepWrapper}>
-                    <View style={[styles.trackIcon, ['pending', 'processing'].includes(service.status) ? styles.trackIconActive : styles.trackIconInactive]}>
-                      <FontAwesome5 name="clipboard-list" size={16} color={['pending', 'processing'].includes(service.status) ? "white" : "#94a3b8"} />
-                    </View>
-                    <Text style={[styles.trackText, service.status === 'pending' ? styles.trackTextActive : styles.trackTextMuted]}>Antrean</Text>
-                  </View>
-
-                  {/* Step 2: Dikerjakan */}
-                  <View style={styles.trackStepWrapper}>
-                    <View style={[styles.trackIcon, service.status === 'processing' ? styles.trackIconActive : styles.trackIconInactive]}>
-                      <FontAwesome5 name="tools" size={16} color={service.status === 'processing' ? 'white' : '#94a3b8'} />
-                    </View>
-                    <Text style={[styles.trackText, service.status === 'processing' ? styles.trackTextActive : styles.trackTextMuted]}>Dikerjakan</Text>
-                  </View>
-
-                  {/* Step 3: Selesai */}
-                  <View style={styles.trackStepWrapper}>
-                    <View style={[styles.trackIcon, styles.trackIconInactive]}>
-                      <FontAwesome5 name="check-double" size={16} color="#94a3b8" />
-                    </View>
-                    <Text style={[styles.trackText, styles.trackTextMuted]}>Selesai</Text>
-                  </View>
-                </View>
-              </View>
-
-            </View>
-          ))
+            );
+          })
         )}
 
-        {/* --- BAGIAN: RIWAYAT TRANSAKSI --- */}
+        {/* --- BAGIAN: RIWAYAT TRANSAKSI (HANYA LUNAS) --- */}
         <View style={[styles.sectionHeader, {marginTop: 24}]}>
           <View style={styles.sectionIconBoxGray}>
             <FontAwesome5 name="history" size={14} color="#64748b" />
@@ -211,7 +250,7 @@ export default function MyGarageMobile() {
           <Text style={styles.sectionTitle}>Riwayat Transaksi</Text>
         </View>
 
-        {/* FILTER WAKTU (Glass Pill) */}
+        {/* FILTER WAKTU */}
         <View style={styles.glassFilterBox}>
           <Text style={styles.filterLabel}>Filter Waktu</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillRow}>
@@ -252,7 +291,7 @@ export default function MyGarageMobile() {
           <ActivityIndicator size="large" color="#dc2626" style={{ marginTop: 20 }} />
         ) : historyServices.length === 0 ? (
           <View style={styles.glassCardEmpty}>
-            <Text style={styles.emptyText}>Tidak ada transaksi pada bulan ini.</Text>
+            <Text style={styles.emptyText}>Belum ada riwayat servis yang telah dilunasi.</Text>
           </View>
         ) : filteredHistory.length === 0 ? (
           <View style={styles.glassCardEmpty}>
@@ -264,16 +303,9 @@ export default function MyGarageMobile() {
               
               <View style={styles.histHeader}>
                 <View>
-                  {/* PENYESUAIAN: Badge Status Sesuai Warna Aslinya */}
-                  {hist.status === 'lunas' ? (
-                     <View style={[styles.statusBadge, {backgroundColor: '#f3e8ff'}]}>
-                       <Text style={[styles.statusText, {color: '#7e22ce'}]}>LUNAS</Text>
-                     </View>
-                  ) : (
-                     <View style={styles.statusBadge}>
-                       <Text style={styles.statusText}>SELESAI</Text>
-                     </View>
-                  )}
+                  <View style={[styles.statusBadge, {backgroundColor: '#f3e8ff'}]}>
+                    <Text style={[styles.statusText, {color: '#7e22ce'}]}><FontAwesome5 name="check-double" size={8}/> LUNAS</Text>
+                  </View>
                   <Text style={styles.histPlat}>{hist.vehicle.plat}</Text>
                   <Text style={styles.histMerek}>{hist.vehicle.merek}</Text>
                 </View>
@@ -283,7 +315,6 @@ export default function MyGarageMobile() {
                   </View>
                   <Text style={styles.histMekanikLabel}>Mekanik:</Text>
                   
-                  {/* PENYESUAIAN: Coretan Untuk Mekanik Dihapus */}
                   {hist.mekanik ? (
                      <Text style={styles.histMekanik}>{hist.mekanik}</Text>
                   ) : (
@@ -292,6 +323,12 @@ export default function MyGarageMobile() {
                      </Text>
                   )}
                 </View>
+              </View>
+
+              <View style={styles.histComplaintBox}>
+                <FontAwesome5 name="comment-alt" size={24} color="rgba(254, 202, 202, 0.3)" style={{position: 'absolute', right: 12, top: 12}} />
+                <Text style={styles.histComplaintLabel}>Keluhan / Gejala</Text>
+                <Text style={styles.histComplaintText}>"{hist.keluhan}"</Text>
               </View>
 
               <View style={styles.histBody}>
@@ -308,8 +345,6 @@ export default function MyGarageMobile() {
                   
                   {hist.rincian_suku_cadang && hist.rincian_suku_cadang.map((detail, idx) => (
                     <View key={idx} style={styles.rincianRowPart}>
-                      
-                      {/* PENYESUAIAN: Coretan Untuk Barang Dihapus */}
                       {detail.nama && detail.nama !== 'Suku Cadang Lama' ? (
                          <Text style={styles.rincianItem} numberOfLines={1}>- {detail.nama} (x{detail.qty})</Text>
                       ) : (
@@ -317,7 +352,6 @@ export default function MyGarageMobile() {
                            - {detail.historical_name || 'Barang Dihapus'} (x{detail.qty})
                          </Text>
                       )}
-                      
                       <Text style={styles.rincianHarga}>Rp {formatRupiah(detail.subtotal)}</Text>
                     </View>
                   ))}
@@ -337,7 +371,7 @@ export default function MyGarageMobile() {
   );
 }
 
-// --- STYLING (White Glassmorphism) ---
+// Desain UI
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' }, 
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' },
@@ -357,61 +391,14 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255, 255, 255, 1)',
     zIndex: 10
   },
-  logoContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    flexShrink: 1, 
-    marginRight: 10 
-  },
-  logoIconBox: { 
-    backgroundColor: '#0f172a', 
-    width: 24, 
-    height: 24, 
-    borderRadius: 6, 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginRight: 8, 
-    elevation: 2, 
-    shadowColor: '#000', 
-    shadowOffset:{width:0, height:2}, 
-    shadowOpacity: 0.1, 
-    shadowRadius: 2 
-  },
-  logoText: { 
-    color: '#0f172a', 
-    fontSize: 13, 
-    fontWeight: '900', 
-    letterSpacing: 0.2,
-    flexShrink: 1
-  },
+  logoContainer: { flexDirection: 'row', alignItems: 'center', flexShrink: 1, marginRight: 10 },
+  logoIconBox: { backgroundColor: '#0f172a', width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginRight: 8, elevation: 2 },
+  logoText: { color: '#0f172a', fontSize: 13, fontWeight: '900', letterSpacing: 0.2, flexShrink: 1 },
   logoRed: { color: '#dc2626' },
   
-  navRight: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    flexShrink: 1 
-  }, 
-  userName: { 
-    color: '#475569', 
-    fontSize: 13, 
-    fontWeight: '700', 
-    marginRight: 10, 
-    flexShrink: 1, 
-    maxWidth: 90 
-  },
-  logoutButton: { 
-    backgroundColor: 'white', 
-    padding: 8, 
-    paddingHorizontal: 12, 
-    borderRadius: 8, 
-    borderWidth: 1, 
-    borderColor: '#e2e8f0', 
-    shadowColor: '#000', 
-    shadowOffset: {width:0, height:1}, 
-    shadowOpacity: 0.05, 
-    shadowRadius: 2, 
-    elevation: 1 
-  },
+  navRight: { flexDirection: 'row', alignItems: 'center', flexShrink: 1 }, 
+  userName: { color: '#475569', fontSize: 13, fontWeight: '700', marginRight: 10, flexShrink: 1, maxWidth: 90 },
+  logoutButton: { backgroundColor: 'white', padding: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: {width:0, height:1}, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
   
   scrollContent: { padding: 16, paddingBottom: 100 },
   
@@ -421,7 +408,7 @@ const styles = StyleSheet.create({
   
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   sectionIconBox: { backgroundColor: '#fee2e2', width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
-  sectionIconBoxGray: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 10, shadowColor: '#000', shadowOffset:{width:0, height:1}, shadowOpacity: 0.05, shadowRadius: 1, elevation: 1 },
+  sectionIconBoxGray: { backgroundColor: 'rgba(226, 232, 240, 0.6)', width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1e293b' },
   
   glassCardEmpty: { backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: 24, padding: 30, alignItems: 'center', borderWidth: 1, borderColor: 'white', marginBottom: 20, shadowColor: '#000', shadowOffset: {width:0, height:4}, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
@@ -432,7 +419,7 @@ const styles = StyleSheet.create({
   glassCard: { backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: 24, padding: 20, marginBottom: 24, borderWidth: 1, borderColor: '#ffffff', shadowColor: '#000', shadowOffset: {width:0, height:8}, shadowOpacity: 0.05, shadowRadius: 15, elevation: 4, overflow: 'hidden' },
   gradientTopLine: { position: 'absolute', top: 0, left: 0, right: 0, height: 4, backgroundColor: '#dc2626' },
   
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 16, marginBottom: 20, marginTop: 4 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 16, marginBottom: 16, marginTop: 4 },
   platBadge: { backgroundColor: '#0f172a', alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, marginBottom: 8 },
   platText: { color: 'white', fontWeight: 'bold', fontSize: 12, letterSpacing: 1.5 },
   vehicleName: { fontSize: 22, fontWeight: '900', color: '#0f172a' },
@@ -441,20 +428,40 @@ const styles = StyleSheet.create({
   costLabel: { color: '#94a3b8', fontSize: 9, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
   costValue: { color: '#dc2626', fontSize: 22, fontWeight: '900' },
 
-  trackerContainer: { position: 'relative', paddingHorizontal: 10, paddingBottom: 10, marginTop: 15 },
-  trackStepsRow: { flexDirection: 'row', justifyContent: 'space-between', zIndex: 2 },
+  // GAYA MEKANIK BERTUGAS
+  mechanicContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(248, 250, 252, 0.8)', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#f1f5f9', marginBottom: 16 },
+  mechanicLabel: { fontSize: 10, fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 },
+  mechanicBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#eff6ff', borderColor: '#dbeafe', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
+  mechanicBadgePending: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderColor: '#e2e8f0', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 },
+  mechanicText: { fontSize: 12, fontWeight: '900', color: '#2563eb' },
+  mechanicTextPending: { fontSize: 12, fontWeight: 'bold', color: '#94a3b8' },
+  mechanicPulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3b82f6', marginRight: 6 },
+
+  // GAYA STEPPER FLEXBOX BARU (ANTI TERPUTUS)
+  trackerWrapper: { marginTop: 10, paddingHorizontal: 5, paddingBottom: 10 },
+  trackerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15 },
   
-  trackLineBg: { position: 'absolute', top: 22, left: 30, right: 30, height: 4, backgroundColor: '#e2e8f0', borderRadius: 2, zIndex: 0 },
-  trackLineRed: { position: 'absolute', top: 22, left: 30, height: 4, backgroundColor: '#dc2626', borderRadius: 2, zIndex: 1 },
-  
-  trackStepWrapper: { alignItems: 'center' },
-  trackIcon: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 8, borderWidth: 4, borderColor: 'white' },
-  trackIconActive: { backgroundColor: '#dc2626', shadowColor: '#dc2626', shadowOffset:{width:0, height:4}, shadowOpacity: 0.3, shadowRadius: 5, elevation: 4 },
-  trackIconInactive: { backgroundColor: '#f1f5f9' },
-  
-  trackText: { fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5 },
-  trackTextActive: { color: '#dc2626' },
-  trackTextMuted: { color: '#94a3b8' },
+  trackCircle: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: 'white', zIndex: 2 },
+  trackCircleActive: { backgroundColor: '#dc2626', shadowColor: '#dc2626', shadowOffset:{width:0, height:3}, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
+  trackCircleFinished: { backgroundColor: '#10b981', shadowColor: '#10b981', shadowOffset:{width:0, height:3}, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 },
+  trackCircleInactive: { backgroundColor: '#f1f5f9', borderColor: '#ffffff' },
+
+  trackLine: { flex: 1, height: 4, zIndex: 1, marginHorizontal: -4 },
+  trackLineActive: { backgroundColor: '#dc2626' },
+  trackLineFinished: { backgroundColor: '#10b981' },
+  trackLineInactive: { backgroundColor: '#e2e8f0' },
+
+  trackerLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingHorizontal: 5 },
+  trackLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 0.5, width: 70, textAlign: 'center' },
+  trackLabelActive: { color: '#dc2626' },
+  trackLabelFinished: { color: '#10b981' },
+  trackLabelInactive: { color: '#94a3b8' },
+
+  // GAYA NOTIFIKASI SELESAI
+  readyNotification: { flexDirection: 'row', backgroundColor: '#ecfdf5', borderColor: '#bbf7d0', borderWidth: 1, padding: 16, borderRadius: 16, marginTop: 24, alignItems: 'center' },
+  readyIconBox: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#10b981', alignItems: 'center', justifyContent: 'center', marginRight: 12, elevation: 2 },
+  readyTitle: { fontSize: 13, fontWeight: '900', color: '#064e3b', marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+  readyText: { fontSize: 11, color: '#047857', lineHeight: 16 },
 
   glassFilterBox: { backgroundColor: 'rgba(255, 255, 255, 0.7)', padding: 12, borderRadius: 20, marginBottom: 16, borderWidth: 1, borderColor: 'white' },
   filterLabel: { fontSize: 10, fontWeight: 'bold', color: '#94a3b8', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5, paddingLeft: 4 },
@@ -467,8 +474,8 @@ const styles = StyleSheet.create({
 
   glassHistoryCard: { backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: 20, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'white', shadowColor: '#000', shadowOffset: {width:0, height:4}, shadowOpacity: 0.04, shadowRadius: 8, elevation: 3 },
   histHeader: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 16, marginBottom: 16 },
-  statusBadge: { backgroundColor: '#dcfce7', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginBottom: 8 },
-  statusText: { color: '#166534', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+  statusBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginBottom: 8 },
+  statusText: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   histPlat: { fontSize: 18, fontWeight: '900', color: '#0f172a' },
   histMerek: { fontSize: 13, color: '#64748b', fontWeight: '500' },
   dateBadge: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginBottom: 6 },
@@ -476,6 +483,10 @@ const styles = StyleSheet.create({
   histMekanikLabel: { fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 },
   histMekanik: { fontSize: 13, color: '#334155', fontWeight: 'bold' },
   
+  histComplaintBox: { backgroundColor: 'rgba(254, 226, 226, 0.5)', borderColor: 'rgba(254, 202, 202, 0.5)', borderWidth: 1, padding: 12, borderRadius: 12, marginBottom: 16, position: 'relative', overflow: 'hidden' },
+  histComplaintLabel: { fontSize: 9, fontWeight: '900', color: '#f87171', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  histComplaintText: { fontSize: 12, fontStyle: 'italic', fontWeight: 'bold', color: '#334155' },
+
   histBody: { marginBottom: 16 },
   rincianHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   rincianLabel: { fontSize: 10, fontWeight: 'bold', color: '#94a3b8', letterSpacing: 1, marginLeft: 6 },

@@ -95,7 +95,7 @@ export default function ResetPasswordScreen() {
             </LinearGradient>
             <Text style={styles.title}>BUAT PASSWORD BARU</Text>
             <Text style={styles.subtitle}>
-              Hampir selesai! Silakan masukkan kata sandi baru yang kuat untuk akun Anda.
+              Silakan masukkan kata sandi baru yang kuat untuk akun Anda.
             </Text>
           </View>
 

@@ -10,6 +10,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // STATE BARU
+  
   const router = useRouter(); 
 
   const handleLogin = async () => {
@@ -54,11 +56,9 @@ export default function LoginScreen() {
       
       // PENANGANAN ERROR 
       if (error.response) {
-        // Jika status 422 (Validasi Gagal dari Laravel)
         if (error.response.status === 422) {
           const validationErrors = error.response.data.errors;
           
-          // Cari pesan error pertama yang dikirim Laravel (misal: "Domain email tidak didukung...")
           let firstErrorMessage = 'Format input tidak sesuai.';
           if (validationErrors) {
             const firstKey = Object.keys(validationErrors)[0];
@@ -67,16 +67,13 @@ export default function LoginScreen() {
           
           Alert.alert('Login Gagal', firstErrorMessage);
         } 
-        // Jika status 401 (Email/Password Salah)
         else if (error.response.status === 401) {
           Alert.alert('Login Gagal', 'Email atau kata sandi yang Anda masukkan salah.');
         } 
-        // Error server lainnya
         else {
           Alert.alert('Terjadi Kesalahan', error.response.data.message || 'Gagal terhubung ke server.');
         }
       } else {
-        // Jika server mati atau tidak ada internet
         Alert.alert('Koneksi Terputus', 'Tidak dapat terhubung ke server. Pastikan internet Anda aktif.');
       }
     }
@@ -122,7 +119,7 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Input Password */}
+            {/* Input Password dengan Tombol Mata */}
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>Password</Text>
               <View style={styles.inputGroup}>
@@ -133,8 +130,22 @@ export default function LoginScreen() {
                   placeholderTextColor="#475569"
                   value={password}
                   onChangeText={setPassword}
-                  secureTextEntry
+                  secureTextEntry={!showPassword} // Dipicu oleh state
                 />
+                
+                {/* TOMBOL TOGGLE MATA */}
+                <TouchableOpacity 
+                  onPress={() => setShowPassword(!showPassword)} 
+                  style={styles.eyeButton}
+                  activeOpacity={0.7}
+                >
+                  <FontAwesome5 
+                    name={showPassword ? "eye" : "eye-slash"} 
+                    size={16} 
+                    color={showPassword ? "#ef4444" : "#64748b"} 
+                  />
+                </TouchableOpacity>
+
               </View>
             </View>
 
@@ -163,7 +174,7 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            {/* --- LINK KE REGISTER --- */}
+            {/* LINK KE REGISTER */}
             <View style={styles.registerFooter}>
               <Text style={styles.registerText}>Belum punya akun?</Text>
               <TouchableOpacity onPress={() => router.replace('/register')}>
@@ -179,11 +190,11 @@ export default function LoginScreen() {
   );
 }
 
-// --- DESAIN UI (STYLES) LOGIN MODERN ---
+// DESAIN UI
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0f172a' // bg-slate-900 (Konsisten dengan web)
+    backgroundColor: '#0f172a' 
   },
   scrollContent: { 
     flexGrow: 1, 
@@ -200,7 +211,7 @@ const styles = StyleSheet.create({
   logoBox: {
     width: 64,
     height: 64,
-    backgroundColor: '#dc2626', // bg-red-600
+    backgroundColor: '#dc2626', 
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -210,7 +221,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    transform: [{ rotate: '-3deg' }] // Efek miring sedikit seperti di web
+    transform: [{ rotate: '-3deg' }]
   },
   titleWrapper: {
     flexDirection: 'row',
@@ -220,29 +231,29 @@ const styles = StyleSheet.create({
   titleTop: { 
     fontSize: 28, 
     fontWeight: '900', 
-    color: '#ef4444', // text-red-500
+    color: '#ef4444', 
     letterSpacing: 2, 
     textAlign: 'center' 
   },
   titleBottom: { 
     fontSize: 28, 
     fontWeight: '900', 
-    color: '#ffffff', // text-white
+    color: '#ffffff', 
     letterSpacing: 2, 
   },
   subtitle: { 
-    color: '#94a3b8', // text-slate-400
+    color: '#94a3b8', 
     fontSize: 14, 
     fontWeight: '500' 
   },
   
   // Card Area
   cardContainer: { 
-    backgroundColor: 'rgba(30, 41, 59, 0.7)', // bg-slate-800 dengan transparansi
+    backgroundColor: 'rgba(30, 41, 59, 0.7)', 
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(51, 65, 85, 0.5)', // border-slate-700
+    borderColor: 'rgba(51, 65, 85, 0.5)', 
   },
   
   inputWrapper: {
@@ -251,7 +262,7 @@ const styles = StyleSheet.create({
   label: { 
     fontSize: 12, 
     fontWeight: '700', 
-    color: '#94a3b8', // text-slate-400
+    color: '#94a3b8', 
     marginBottom: 8, 
     textTransform: 'uppercase', 
     letterSpacing: 1 
@@ -259,10 +270,10 @@ const styles = StyleSheet.create({
   inputGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.5)', // bg-slate-900/50
+    backgroundColor: 'rgba(15, 23, 42, 0.5)', 
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#334155', // border-slate-700
+    borderColor: '#334155', 
     paddingHorizontal: 16,
     height: 56
   },
@@ -275,6 +286,12 @@ const styles = StyleSheet.create({
     flex: 1, 
     color: '#ffffff', 
     fontSize: 15,
+  },
+  eyeButton: {
+    padding: 10,
+    marginLeft: 5,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 
   // Forgot Password
@@ -289,10 +306,10 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
 
-  // Tombol Login Solid Red Gradient feel
+  // Tombol Login
   loginButton: { 
     flexDirection: 'row',
-    backgroundColor: '#dc2626', // bg-red-600
+    backgroundColor: '#dc2626', 
     paddingVertical: 16, 
     borderRadius: 12, 
     justifyContent: 'center',
@@ -320,7 +337,7 @@ const styles = StyleSheet.create({
     marginTop: 28, 
     paddingTop: 24, 
     borderTopWidth: 1, 
-    borderTopColor: 'rgba(51, 65, 85, 0.5)', // border-slate-700/50
+    borderTopColor: 'rgba(51, 65, 85, 0.5)',
     gap: 6
   },
   registerText: { 
@@ -328,7 +345,7 @@ const styles = StyleSheet.create({
     fontSize: 14 
   },
   registerLink: { 
-    color: '#f87171', // text-red-400
+    color: '#f87171', 
     fontSize: 14, 
     fontWeight: 'bold' 
   }

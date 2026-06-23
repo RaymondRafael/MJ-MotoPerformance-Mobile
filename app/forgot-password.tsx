@@ -29,7 +29,6 @@ export default function ForgotPasswordScreen() {
 
     setIsLoading(true);
     try {
-      // PASTIKAN URL NGROK INI ADALAH YANG PALING BARU (Ngrok berganti URL setiap dihidupkan ulang)
       const response = await axios.post('https://swiftness-shifter-promotion.ngrok-free.dev/api/forgot-password', {
         email: email
       }, {
@@ -37,15 +36,15 @@ export default function ForgotPasswordScreen() {
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': '69420' // Header sakti untuk membypass peringatan Ngrok
+            'ngrok-skip-browser-warning': '69420' 
         }
       });
 
       console.log("SUKSES DARI SERVER:", response.data);
 
-      // TAMBAHAN: Deteksi jika yang diterima adalah halaman HTML nyasar
+      // Deteksi jika yang diterima adalah halaman HTML nyasar
       if (typeof response.data === 'string' && response.data.includes('<html')) {
-          Alert.alert('Gagal Sistem', 'Server mengembalikan halaman web alih-alih data API. Pastikan rute routes/api.php sudah benar dan URL Ngrok aktif.');
+          Alert.alert('Gagal Sistem');
           return;
       }
 
@@ -63,7 +62,7 @@ export default function ForgotPasswordScreen() {
       }
 
     } catch (error: any) {
-      // PROSES DEBUGGING YANG BAWEL
+      // Tambahkan log error untuk debugging
       console.error("AXIOS ERROR DETAILS:", error);
       console.log("RESPONSE DATA:", error.response?.data);
       console.log("RESPONSE STATUS:", error.response?.status);
@@ -116,7 +115,7 @@ export default function ForgotPasswordScreen() {
               <FontAwesome5 name="envelope" size={16} color="#6b7280" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="contoh@email.com"
+                placeholder="Masukkan email anda..."
                 placeholderTextColor="#6b7280"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -134,7 +133,7 @@ export default function ForgotPasswordScreen() {
             >
               <LinearGradient colors={isLoading ? ['#f87171', '#fca5a5'] : ['#dc2626', '#ef4444']} style={styles.button}>
                 {isLoading ? (
-                   <ActivityIndicator color="white" />
+                  <ActivityIndicator color="white" />
                 ) : (
                   <>
                     <FontAwesome5 name="paper-plane" size={16} color="white" style={{ marginRight: 8 }} />
